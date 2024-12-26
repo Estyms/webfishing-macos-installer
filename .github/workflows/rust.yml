@@ -16,4 +16,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build
-      run: cargo build --verbose
+      run: cargo build --release --verbose
+    - uses: actions/upload-artifact@v4
+      with:
+        name: webfishing-macos-installer
+        path: webfishing-macos-installer/target/release/webfishing_macos_installer
