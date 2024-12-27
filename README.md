@@ -23,7 +23,10 @@ You can also run it from the command line and doing so will put the build folder
 ## Implemented Patches
 
 - renaming `steam_id_remote` dictionnary key to `remote_steam_id` to fix network spam detection that resulted in timeouts
+- prevent the game from crashing when saving the options by not setting any values to `OS.windowed_borderless` because setting a value to it crashes the game somehow
 
 ## Credits
 
 [@vimaexd](https://github.com/vimaexd) for their blog post !
+
+[Godot RE Tools](https://github.com/GDRETools/gdsdecomp) for the amazing tooling that allows me to patch the game !
