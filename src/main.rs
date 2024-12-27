@@ -1,5 +1,8 @@
+mod utils;
+mod patches;
+
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::{Write};
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -12,17 +15,6 @@ use sysinfo::ProcessesToUpdate;
 static WEBFISHING_APPID: u32 = 3146520;
 
 
-// https://stackoverflow.com/a/54152901
-fn replace_slice<T>(buf: &mut [T], from: &[T], to: &[T])
-where
-    T: Clone + PartialEq,
-{
-    for i in 0..=buf.len() - from.len() {
-        if buf[i..].starts_with(from) {
-            buf[i..(i + from.len())].clone_from_slice(to);
-        }
-    }
-}
 
 async fn install_webfishing(location: &SteamDir) {
     let steam_location = location.path();
@@ -64,6 +56,21 @@ async fn download_godot_steam_template() {
     file.write_all(&body).expect("Could not write godotsteam template");
 }
 
+async fn download_gd_decomp() {
+    println!("Download Godot Decompiler...");
+    let res = reqwest::get("https://github.com/GDRETools/gdsdecomp/releases/download/v0.8.0/GDRE_tools-v0.8.0-macos.zip").await.expect("Could not download decompiler");
+    let body = res.bytes().await.expect("Could not read body");
+
+    println!("Unzipping GodotSteam Decompiler...");
+    let mut file = File::create("build/decompiler.zip").expect("Could not create decompiler");
+    file.write_all(&body).expect("Could not write decompiler");
+
+    Command::new("unzip")
+        .arg("decompiler.zip")
+        .current_dir("build")
+        .output().expect("Could not unzip godotsteam template");
+}
+
 fn build_webfishing_macos(webfishing_path: &Path) {
     let template_path = Path::new("build/osx_template.app");
     Command::new("rm")
@@ -94,20 +101,16 @@ fn build_webfishing_macos(webfishing_path: &Path) {
         .output().expect("Could not copy webfishing.app");
 }
 
-fn patch_webfishing_pck() {
-    println!("Patching webfishing PCK");
+fn decomp_game() {
     let webfishing_pck_path = Path::new("build").join("webfishing.app").join("Contents").join("Resources").join("webfishing.pck");
-
-    let mut webfishing_pck_read = File::open(&webfishing_pck_path).expect("Could not open webfishing.pck file");
-    let mut bytes = Vec::new();
-    webfishing_pck_read.read_to_end(&mut bytes).expect("Could not read webfishing.pck");
-    drop(webfishing_pck_read);
-
-    // PATCH
-    replace_slice(&mut bytes, "steam_id_remote".as_bytes(), "remote_steam_id".as_bytes());
-
-    let mut webfishing_pck_write = File::create(webfishing_pck_path).expect("Could not open webfishing.pck file");
-    webfishing_pck_write.write_all(bytes.as_slice()).expect("Could not write webfishing.pck");
+    let decomp_command = "build/Godot RE Tools.app/Contents/MacOS/Godot RE Tools";
+    Command::new(decomp_command)
+        .arg("--headless")
+        .arg(format!("--extract={}", webfishing_pck_path.display()))
+        .arg("--include=\"*options_menu*\"")
+        .arg("--include=\"*SteamNetwork*\"")
+        .arg("--output-dir=build/webfishing-export")
+        .output().expect("Could not extract game");
 }
 
 #[tokio::main]
@@ -126,6 +129,10 @@ async fn main() {
     }
 
     let (app, library) =  location.find_app(WEBFISHING_APPID).unwrap().unwrap();
+
+    if !Path::exists("build/decompiler.zip".as_ref()) {
+        download_gd_decomp().await;
+    }
 
     if !Path::exists("build/godot_steam_template.zip".as_ref()) {
         download_godot_steam_template().await;
@@ -158,7 +165,9 @@ async fn main() {
     }
 
     if sudo::check() != RunningAs::Root {
-        patch_webfishing_pck();
+        decomp_game();
+        patches::steam_network_patch::patch().await;
+        patches::options_menu_patch::patch().await;
         println!("Root permissions needed to sign webfishing");
     }
 
