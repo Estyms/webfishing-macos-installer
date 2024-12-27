@@ -14,7 +14,7 @@ pub(crate) async fn patch() {
     script.read_to_string(&mut script_txt).await.expect("Cannot read script");
     drop(script);
 
-    let patched_script = script_txt.replace("OS.window_borderless = PlayerData.player_options.fullscreen == 1", "\n");
+    let patched_script = script_txt.replace("OS.window_borderless = PlayerData.player_options.fullscreen == 1", "OS.window_borderless\n");
     let mut script = File::create(SCRIPT_PATH).await.expect("Cannot open script");
     script.write_all(patched_script.as_bytes()).await.expect("Cannot write");
     drop(script);
@@ -30,9 +30,13 @@ pub(crate) async fn patch() {
     let mut compiled_pck = File::open(GAME_PCK).await.expect("Cannot open pck");
     compiled_pck.read_to_end(&mut compiled_pck_bytes).await.expect("Cannot read");
     drop(compiled_pck);
+    let mut compiled_pck_bytes: Vec<u8> = compiled_pck_bytes.into_iter().rev().skip_while(|b| (*b) == 0).collect::<Vec<u8>>().into_iter().rev().collect();
 
-    for _ in 0..16 - (compiled_script_bytes.len() % 16) {
-        compiled_script_bytes.push(0);
+    if compiled_script_bytes.len() % 16 > 0 {
+        let to_add = 16 - (compiled_script_bytes.len() % 16);
+        for _ in 0..to_add {
+            compiled_script_bytes.push(0);
+        }
     }
 
     let mut tsc_bytes = Vec::new();
@@ -41,8 +45,12 @@ pub(crate) async fn patch() {
     drop(tsc);
 
     compiled_script_bytes.append(&mut tsc_bytes);
-    for _ in 0..16 - (compiled_script_bytes.len() % 16) {
-        compiled_script_bytes.push(0);
+    let mut compiled_pck_bytes: Vec<u8> = compiled_pck_bytes.into_iter().rev().skip_while(|b| (*b) == 0).collect::<Vec<u8>>().into_iter().rev().collect();
+    if compiled_script_bytes.len() % 16 > 0 {
+        let to_add = 16 - (compiled_script_bytes.len() % 16);
+        for _ in 0..to_add {
+            compiled_script_bytes.push(0);
+        }
     }
 
     replace_slice(&mut compiled_pck_bytes,

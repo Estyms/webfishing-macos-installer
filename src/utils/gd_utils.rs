@@ -7,7 +7,7 @@ pub(crate) fn replace_slice<T>(buf: &mut [T], from: &[T], to: &[T], replace_with
 where
     T: Clone + PartialEq + From<u8>,
 {
-    for i in 0..=buf.len() - replace_with.len() {
+    for mut i in 0..=buf.len() - replace_with.len() {
         if buf[i..].starts_with(from) {
             for j in (i + 1)..=buf.len()  {
                 if buf[j..].starts_with(to) {
