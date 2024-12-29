@@ -27,12 +27,12 @@ where
 }
 
 pub(crate) fn decomp_file(path: &str) {
-    dbg!(Command::new(RE_TOOLS)
+    Command::new(RE_TOOLS)
         .arg("--headless")
         .arg(format!("--decompile=\"{}\"", path))
         .arg("--bytecode=3.5.0")
         .arg("--output-dir=build/webfishing-decomp")
-        .output().expect(format!("Failed to decompile file: {}", path).as_str()));
+        .output().expect(format!("Failed to decompile file: {}", path).as_str());
 }
 
 pub(crate) fn recomp_file(path: &str) {
