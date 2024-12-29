@@ -1,0 +1,8 @@
+[package]
+name = "godot_pck"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+binary-reader = "0.4.5"
+md5 = "0.7.0"

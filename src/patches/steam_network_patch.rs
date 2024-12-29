@@ -1,13 +1,23 @@
+use godot_pck::structs::PckFile;
 use async_std::fs::File;
 use async_std::io::{ReadExt, WriteExt};
-use crate::utils::gd_utils::replace_slice;
+use godot_pck::structs::PCK;
 
+const RESOURCE_PATH: &str = "res://Scenes/Singletons/SteamNetwork.gdc";
+const FILE_PATH: &str = "build/webfishing-export/SteamNetwork.gdc";
 const SCRIPT_PATH: &str = "build/webfishing-decomp/SteamNetwork.gd";
 const COMPILED_PATH: &str = "build/webfishing-recomp/SteamNetwork.gdc";
-const GAME_PCK: &str = "build/webfishing.app/Contents/Resources/webfishing.pck";
 
-pub(crate) async fn patch() {
-    crate::utils::gd_utils::decomp_file("build/webfishing-export/Scenes/Singletons/SteamNetwork.gdc");
+pub(crate) async fn patch(pck: &mut PCK) {
+    println!("Patching {} files...", RESOURCE_PATH);
+    let mut pck_file: &mut PckFile = pck.get_file_by_path_mut(RESOURCE_PATH).expect("Couldn't find options_menu.gdc file");
+
+    let content = pck_file.get_content();
+    let mut exported_file = File::create(FILE_PATH).await.expect("Couldn't create file");
+    exported_file.write_all(content).await.expect("Couldn't write file");
+    drop(exported_file);
+
+    crate::utils::gd_utils::decomp_file(FILE_PATH);
 
     let mut script = File::open(SCRIPT_PATH).await.expect("Cannot open script");
     let mut script_txt = String::new();
@@ -21,22 +31,9 @@ pub(crate) async fn patch() {
 
     crate::utils::gd_utils::recomp_file(SCRIPT_PATH);
 
-    let mut compiled_script_bytes = Vec::new();
-    let mut compiled_script = File::open(COMPILED_PATH).await.expect("Cannot open script");
-    compiled_script.read_to_end(&mut compiled_script_bytes).await.expect("Cannot read");
-    drop(compiled_script);
+    let mut file = File::open(COMPILED_PATH).await.expect("Cannot open compiled script");
+    let mut new_content = vec![];
+    file.read_to_end(&mut new_content).await.unwrap();
 
-    let mut compiled_pck_bytes = Vec::new();
-    let mut compiled_pck = File::open(GAME_PCK).await.expect("Cannot open pck");
-    compiled_pck.read_to_end(&mut compiled_pck_bytes).await.expect("Cannot read");
-    drop(compiled_pck);
-
-    replace_slice(&mut compiled_pck_bytes,
-                  &[0x47, 0x44, 0x53, 0x43, 0x0D, 0x00, 0x00, 0x00, 0x5B, 0x01, 0x00, 0x00, 0xE0, 0x00, 0x00, 0x00],
-                  "GDSC".as_ref(),
-                  &compiled_script_bytes
-    );
-
-    let mut compiled_pck = File::create(GAME_PCK).await.expect("Cannot open pck");
-    compiled_pck.write_all(compiled_pck_bytes.as_slice()).await.expect("Cannot write");
+    pck_file.set_content(new_content);
 }

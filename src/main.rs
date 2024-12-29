@@ -2,7 +2,7 @@ mod utils;
 mod patches;
 
 use std::fs::File;
-use std::io::{Write};
+use std::io::{Read, Write};
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -11,6 +11,7 @@ use async_std::fs::create_dir;
 use steamlocate::SteamDir;
 use sudo::RunningAs;
 use sysinfo::ProcessesToUpdate;
+use godot_pck::structs::PCK;
 
 static WEBFISHING_APPID: u32 = 3146520;
 
@@ -101,18 +102,6 @@ fn build_webfishing_macos(webfishing_path: &Path) {
         .output().expect("Could not copy webfishing.app");
 }
 
-fn decomp_game() {
-    let webfishing_pck_path = Path::new("build").join("webfishing.app").join("Contents").join("Resources").join("webfishing.pck");
-    let decomp_command = "build/Godot RE Tools.app/Contents/MacOS/Godot RE Tools";
-    Command::new(decomp_command)
-        .arg("--headless")
-        .arg(format!("--extract={}", webfishing_pck_path.display()))
-        .arg("--include=\"*options_menu*\"")
-        .arg("--include=\"*SteamNetwork*\"")
-        .arg("--output-dir=build/webfishing-export")
-        .output().expect("Could not extract game");
-}
-
 #[tokio::main]
 async fn main() {
     if !Path::exists("build".as_ref()) {
@@ -164,11 +153,18 @@ async fn main() {
         build_webfishing_macos(webfishing_path);
     }
 
-    if sudo::check() != RunningAs::Root {
-        decomp_game();
-        patches::steam_network_patch::patch().await;
-        patches::options_menu_patch::patch().await;
+    if sudo::check()!= RunningAs::Root {
+        let _ = create_dir("build/webfishing-export").await;
+        let mut bytes = vec![];
+        File::open(webfishing_path.join("webfishing.exe")).unwrap().read_to_end(&mut bytes).unwrap();
+        let mut pck = PCK::from_bytes(&*bytes).unwrap();
+
+        patches::steam_network_patch::patch(&mut pck).await;
+        patches::options_menu_patch::patch(&mut pck).await;
         println!("Root permissions needed to sign webfishing");
+
+        let bytes = &pck.to_bytes();
+        File::create("build/webfishing.app/Contents/Resources/webfishing.pck").unwrap().write(bytes).expect("Could not write to webfishing.pck");
     }
 
     sudo::escalate_if_needed().expect("Could not escalate to sign the app");
