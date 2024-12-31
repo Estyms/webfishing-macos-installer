@@ -38,7 +38,7 @@ As you can see in the `example_mods` folder, a mod has typically two folders and
     "resource_prefix": "res://Mods/Ship/" // Resource path prefix for the mod resources
   },
   
-  "mod_patches": [ // Array of patches
+  "patches": [ // Array of patches
     {
       "resource": "res://Scenes/Entities/Player/player.gdc", // Resource to patch
       "patch_file": "patch/player.patch" // relative file path to the patch file

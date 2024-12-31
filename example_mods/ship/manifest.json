@@ -5,7 +5,7 @@
     "directory": "pck",
     "resource_prefix": "res://Mods/Ship/"
   },
-  "mod_patches": [
+  "patches": [
     {
       "resource": "res://Scenes/Entities/Player/player.gdc",
       "patch_file": "patch/player.patch"
