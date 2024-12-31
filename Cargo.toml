@@ -11,4 +11,10 @@ sysinfo = "0.33.0"
 async-std = "1.13.0"
 sudo = "0.6.0"
 asky = "0.1.1"
+patch-apply = "0.8.3"
+serde = { version = "1.0.217" }
+serde_json = { version = "1.0.134" }
+serde_derive = { version = "1.0.217" }
+
+
 godot_pck = {path = "./src/godot_pck"}

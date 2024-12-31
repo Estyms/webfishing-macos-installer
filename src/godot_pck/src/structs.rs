@@ -12,7 +12,6 @@ pub struct PCK {
 #[derive(Debug, Clone)]
 pub struct PckFile {
     path: String,
-    offset: u64,
     content: Vec<u8>,
     md5: [u8; 16],
 }
@@ -136,9 +135,16 @@ impl PckFile {
         let content: Vec<u8> = file_bytes.iter().skip(offset as usize).take(size as usize).cloned().collect();
         PckFile {
             path,
-            offset,
             content,
             md5: <[u8; 16]>::try_from(md5).unwrap(),
+        }
+    }
+
+    pub fn new_file(path: String, content: Vec<u8>) -> PckFile {
+        PckFile {
+            path,
+            md5: *md5::compute(&content),
+            content
         }
     }
 

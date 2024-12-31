@@ -10,14 +10,14 @@ const COMPILED_PATH: &str = "build/webfishing-recomp/SteamNetwork.gdc";
 
 pub(crate) async fn patch(pck: &mut PCK) {
     println!("Patching {} files...", RESOURCE_PATH);
-    let mut pck_file: &mut PckFile = pck.get_file_by_path_mut(RESOURCE_PATH).expect("Couldn't find options_menu.gdc file");
+    let pck_file: &mut PckFile = pck.get_file_by_path_mut(RESOURCE_PATH).expect("Couldn't find options_menu.gdc file");
 
     let content = pck_file.get_content();
     let mut exported_file = File::create(FILE_PATH).await.expect("Couldn't create file");
     exported_file.write_all(content).await.expect("Couldn't write file");
     drop(exported_file);
 
-    crate::utils::gd_utils::decomp_file(FILE_PATH);
+    crate::utils::gd_utils::decomp_script(FILE_PATH);
 
     let mut script = File::open(SCRIPT_PATH).await.expect("Cannot open script");
     let mut script_txt = String::new();

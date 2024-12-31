@@ -1,12 +1,14 @@
 mod utils;
 mod patches;
+mod mods;
 
+use std::env::{current_exe, set_current_dir};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
-use asky::Confirm;
+use asky::Text;
 use async_std::fs::create_dir;
 use steamlocate::SteamDir;
 use sudo::RunningAs;
@@ -14,8 +16,6 @@ use sysinfo::ProcessesToUpdate;
 use godot_pck::structs::PCK;
 
 static WEBFISHING_APPID: u32 = 3146520;
-
-
 
 async fn install_webfishing(location: &SteamDir) {
     let steam_location = location.path();
@@ -104,6 +104,7 @@ fn build_webfishing_macos(webfishing_path: &Path) {
 
 #[tokio::main]
 async fn main() {
+    set_current_dir(current_exe().unwrap().parent().expect("Could not get current dir")).expect("Could not set current dir");
     if !Path::exists("build".as_ref()) {
         println!("Creating build folder");
         create_dir("build").await.expect("could not create build folder");
@@ -161,6 +162,7 @@ async fn main() {
 
         patches::steam_network_patch::patch(&mut pck).await;
         patches::options_menu_patch::patch(&mut pck).await;
+        mods::mods::process_mods(&mut pck);
         println!("Root permissions needed to sign webfishing");
 
         let bytes = &pck.to_bytes();
@@ -175,20 +177,7 @@ async fn main() {
         .output()
         .expect("Could not execute xattr");
 
-    if Confirm::new("Do you wanna install Webfishing in the app folder?").prompt().expect("Could not confirm to install the webfishing") {
-        Command::new("rsync")
-            .arg("-a")
-            .arg("build/webfishing.app")
-            .current_dir("/Applications/")
-            .output().expect("Could not execute rsync");
+    println!("Webfishing is in the build folder !");
 
-        Command::new("rm")
-            .arg("-r")
-            .arg("build/webfishing.app")
-            .output().expect("Could not remove webfishing.app");
-
-        println!("Successfully installed webfishing !");
-    } else {
-        println!("Webfishing is in the build folder !")
-    }
+    Text::new("Press Enter to quit").prompt().expect("Could not confirm to quit");
 }

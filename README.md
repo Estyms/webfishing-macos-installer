@@ -25,6 +25,33 @@ You can also run it from the command line and doing so will put the build folder
 - renaming `steam_id_remote` dictionnary key to `remote_steam_id` to fix network spam detection that resulted in timeouts
 - prevent the game from crashing when saving the options by not setting any values to `OS.windowed_borderless` because setting a value to it crashes the game somehow
 
+## How to make a mod?
+
+As you can see in the `example_mods` folder, a mod has typically two folders and a single `manifest.json` file having the following structure:
+```json
+{
+  "name": "Ship Mod", // Mod name
+  "author": "Estym", // Author
+  
+  "pck_info": { // (Optional)
+    "directory": "pck", // Relative folder path to where the mod resources are
+    "resource_prefix": "res://Mods/Ship/" // Resource path prefix for the mod resources
+  },
+  
+  "mod_patches": [ // Array of patches
+    {
+      "resource": "res://Scenes/Entities/Player/player.gdc", // Resource to patch
+      "patch_file": "patch/player.patch" // relative file path to the patch file
+    }
+  ],
+  
+  "deps": [] // Dependencies for the mod (Optional)
+}
+```
+
+### Notes:
+- The patch files are made by using `$ git diff [original_file] [modded_file] > file.patch`
+
 ## Credits
 
 [@vimaexd](https://github.com/vimaexd) for their blog post !

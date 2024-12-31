@@ -1,0 +1,15 @@
+{
+  "name": "Ship Mod",
+  "author": "Estym",
+  "pck_info": {
+    "directory": "pck",
+    "resource_prefix": "res://Mods/Ship/"
+  },
+  "mod_patches": [
+    {
+      "resource": "res://Scenes/Entities/Player/player.gdc",
+      "patch_file": "patch/player.patch"
+    }
+  ],
+  "deps": []
+}
