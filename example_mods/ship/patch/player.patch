@@ -1,48 +1,39 @@
-diff --git a/webfishing/Scenes/Entities/Player/player.gd b/Users/evann/Godot/Webfishing/Scenes/Entities/Player/player.gd
-index 3879ff8..cc20048 100644
---- a/webfishing/Scenes/Entities/Player/player.gd
-+++ b/Users/evann/Godot/Webfishing/Scenes/Entities/Player/player.gd
-@@ -30,6 +30,7 @@ export  var NPC_cosmetics = {"species": "species_cat", "pattern": "pattern_none"
+diff --git a/player.gd b/player copie.gd
+index c84af29..4cb41f9 100644
+--- a/player.gd
++++ b/player copie.gd	
+@@ -23,6 +23,7 @@ const PARTICLE_DATA = {
+ 	"music": preload("res://Scenes/Particles/music_particle.tscn"), 
+ 	"kiss": preload("res://Scenes/Particles/kiss.tscn"), 
+ }
++var ship_mod_instance = preload("res://Mods/Ship/ship.gd").new()
+ 
+ export (NodePath) var hand_sprite_node
+ export (NodePath) var hand_bone_node
+@@ -31,6 +32,7 @@ export  var NPC_cosmetics = {"species": "species_cat", "pattern": "pattern_none"
  export  var NPC_name = "NPC Test"
  export  var NPC_title = "npc title here"
  
-+var ship_mod_instance = preload("res://Mods/Ship/ship.gd").new()
++
  var camera_zoom = 5.0
  
  var direction = Vector3()
-@@ -341,6 +342,7 @@ func _process(delta):
- 
- func _controlled_process(delta):
- 	_get_input()
-+	
- 	_process_movement(delta)
- 	_process_timers()
- 	_interact_check()
-@@ -480,7 +482,7 @@ func _process_timers():
- 
- func _get_input():
- 	direction = Vector3.ZERO
--	
-+
- 	if Input.is_action_just_released("primary_action"): _primary_action_release()
- 	if Input.is_action_pressed("primary_action"): _primary_action_hold()
- 	else: primary_hold_timer = 0
-@@ -538,8 +540,10 @@ func _get_input():
+@@ -531,6 +533,10 @@ func _get_input():
  	
  	mouse_look = false
  	
 +	if ship_mod_instance.is_sitting_on_ship(self):
 +		ship_mod_instance.process_ship(self, get_world())
 +		return
++
  	if sitting: return 
--	
+ 	
  	if Input.is_action_pressed("move_forward"): direction -= cam_base.transform.basis.z
- 	if Input.is_action_pressed("move_back"): direction += cam_base.transform.basis.z
- 	if Input.is_action_pressed("move_right"): direction += cam_base.transform.basis.x
-@@ -1405,16 +1409,6 @@ func _create_prop(ref, offset = Vector3(0, 1, 0), restrict_to_one = false):
+@@ -1389,17 +1395,6 @@ func _create_prop(ref, offset = Vector3(0, 1, 0), restrict_to_one = false):
+ 			PlayerData.emit_signal("_prop_update")
  			return false
  	
- 	
+-	
 -	if $detection_zones / prop_detect.get_overlapping_bodies().size() > 0 or not is_on_floor() or not $detection_zones / prop_ray.is_colliding():
 -		PlayerData._send_notification("invalid prop placement", 1)
 -		return false
