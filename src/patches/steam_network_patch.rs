@@ -24,7 +24,7 @@ pub(crate) async fn patch(pck: &mut PCK) {
     script.read_to_string(&mut script_txt).await.expect("Cannot read script");
     drop(script);
 
-    let patched_script = script_txt.replace("steam_id_remote", "remote_steam_id");
+    let patched_script = script_txt.replace(".LOBBY_COMPARISON_EQUAL_TO_GREATER_THAN", ".OBBY_COMPARISON_EQUAL_TO_GREATER_THAN");
     let mut script = File::create(SCRIPT_PATH).await.expect("Cannot open script");
     script.write_all(patched_script.as_bytes()).await.expect("Cannot write");
     drop(script);
