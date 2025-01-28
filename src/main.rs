@@ -9,7 +9,7 @@ use std::env::{current_exe, set_current_dir};
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
-use std::process::Command;
+use std::process::{exit, Command};
 use std::time::Duration;
 use steamlocate::SteamDir;
 use sudo::RunningAs;
@@ -137,12 +137,33 @@ fn build_webfishing_macos(webfishing_path: &Path) {
         .expect("Could not copy webfishing.app");
 }
 
+fn sign_webfishing() {
+    Command::new("xattr")
+        .arg("-cr")
+        .arg("build/webfishing.app")
+        .output()
+        .expect("Could not execute xattr");
+
+    Command::new("rm")
+        .arg("build/signing-step")
+        .output()
+        .expect("Could not remove signing-step file");
+
+    println!("Webfishing is in the build folder !");
+
+    Text::new("Press Enter to quit")
+        .prompt()
+        .expect("Could not confirm to quit");
+
+
+}
+
 #[tokio::main]
 async fn main() {
-    if sudo::check() != RunningAs::Root {
-        println!("You need to be root to run this program");
+    if sudo::check() == RunningAs::Root && Path::new("build/signing-step").exists() {
+        sign_webfishing();
+        exit(0);
     }
-    sudo::escalate_if_needed().expect("Could not escalate");
 
     set_current_dir(
         current_exe()
@@ -223,15 +244,13 @@ async fn main() {
         .write(bytes)
         .expect("Could not write to webfishing.pck");
 
-    Command::new("xattr")
-        .arg("-cr")
-        .arg("build/webfishing.app")
-        .output()
-        .expect("Could not execute xattr");
+    File::create("build/signing-step").expect("Could not create signing step file");
 
-    println!("Webfishing is in the build folder !");
+    if sudo::check() != RunningAs::Root {
+        println!("In order to sign the app, you need to be root");
+        sudo::escalate_if_needed().expect("Could not escalate");
+        exit(1);
+    }
 
-    Text::new("Press Enter to quit")
-        .prompt()
-        .expect("Could not confirm to quit");
+    sign_webfishing();
 }
