@@ -59,7 +59,7 @@ async fn install_webfishing(location: &SteamDir) {
 async fn download_godot_steam_template() {
     println!("Downloading GodotSteam template...");
     let res = reqwest::get(
-        "https://github.com/GodotSteam/GodotSteam/releases/download/v3.24/macos-g353-s159-gs324.zip",
+        "https://codeberg.org/godotsteam/godotsteam/releases/download/v3.24/macos-g353-s159-gs324.zip",
     )
     .await
     .expect("Could not download godotsteam template");
@@ -89,6 +89,7 @@ async fn download_gd_decomp() {
 
 fn build_webfishing_macos(webfishing_path: &Path) {
     let template_path = Path::new("build/osx_template.app");
+
     Command::new("rm")
         .current_dir(template_path)
         .arg("Contents/MacOS/godot_osx_debug.universal")
