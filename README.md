@@ -28,7 +28,7 @@ You can also run it from the command line and doing so will put the build folder
 ## How to make a mod?
 
 As you can see in the `example_mods` folder, a mod has typically two folders and a single `manifest.json` file having the following structure:
-```json
+```jsonc
 {
   "name": "Ship Mod", // Mod name
   "author": "Estym", // Author
