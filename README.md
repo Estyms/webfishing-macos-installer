@@ -25,6 +25,17 @@ You can also run it from the command line and doing so will put the build folder
 - renaming `steam_id_remote` dictionnary key to `remote_steam_id` to fix network spam detection that resulted in timeouts
 - prevent the game from crashing when saving the options by not setting any values to `OS.windowed_borderless` because setting a value to it crashes the game somehow
 
+
+## How to install a mod?
+
+When running the software for the first time and building webfishing, you'll notice that a `mods` folder has appeared in the folder where the installer is.
+
+In order to install a mod, just copy a mod folder in it, a mod folder has a `manifest.json` file in it.
+
+After that, run the installer again ! It will tell you in the terminal if the mod is installed or if something went wrong.
+
+Here's a small mod list : [link to the mod list](modlist.md)
+
 ## How to make a mod?
 
 As you can see in the `example_mods` folder, a mod has typically two folders and a single `manifest.json` file having the following structure:
